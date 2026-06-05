@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Layanan Web Statis (Menggunakan Nginx)
+  web-statis:
+    image: nginx:alpine
+    container_name: uas-web-statis
+    ports:
+      - "8081:80"
+    volumes:
+      - ./web-statis:/usr/share/nginx/html
+    restart: always
+
+  # Layanan Web Dinamis (PHP CRUD)
+  web-dinamis:
+    build:
+      context: ./web-dinamis
+      dockerfile: Dockerfile
+    container_name: uas-web-dinamis
+    ports:
+      - "8082:80"
+    environment:
+      DATABASE_HOST: db-server
+      DATABASE_USER: uas_user
+      DATABASE_PASSWORD: uas_password
+      DATABASE_NAME: uas_db
+    depends_on:
+      db-server:
+        condition: service_healthy
+    restart: always
+
+  # Layanan Database MariaDB
+  db-server:
+    image: mariadb:10.6
+    container_name: uas-db-server
+    environment:
+      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: uas_db
+      MARIADB_USER: uas_user
+      MARIADB_PASSWORD: uas_password
+    volumes:
+      - db_data:/var/lib/mysql
+      # Otomatisasi seeding database dari init.sql lokal saat kontainer pertama dinyalakan
+      - ./web-dinamis/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "uas_user", "-puas_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+volumes:
+  db_data:
