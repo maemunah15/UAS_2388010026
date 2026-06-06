@@ -3,18 +3,18 @@ version: '3.8'
 services:
   # Layanan Web Statis (Nginx)
   container-statis:
-    image: ${DOCKERHUB_USERNAME:-faqih703}/uas_statis:latest
+    image: maemunah/uas_statis:latest
     container_name: container-statis
     ports:
-      - "8081:80"
+      - "80:80"
     restart: always
 
   # Layanan Web Dinamis (PHP CRUD)
   container-dinamis:
-    image: ${DOCKERHUB_USERNAME:-faqih703}/uas_dinamis:latest
+    image: maemunah/uas_dinamis:latest
     container_name: container-dinamis
     ports:
-      - "8082:80"
+      - "3000:80"
     environment:
       DATABASE_HOST: db-webdinamis
       DATABASE_USER: uas_user
@@ -36,7 +36,7 @@ services:
       MARIADB_PASSWORD: uas_password
     volumes:
       - db_data:/var/lib/mysql
-      - ./web-dinamis/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - /home/ubuntu/docker-aws/web-dinamis/db/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "uas_user", "-puas_password"]
       interval: 5s
