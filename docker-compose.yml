@@ -30,7 +30,7 @@ services:
     image: mariadb:10.6
     container_name: db-webdinamis
     environment:
-      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_ROOT_PASSWORD: Admin@730751
       MARIADB_DATABASE: uas_db
       MARIADB_USER: uas_user
       MARIADB_PASSWORD: uas_password
