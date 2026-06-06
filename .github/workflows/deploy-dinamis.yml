@@ -1,0 +1,54 @@
+name: Deploy Dynamic Web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web-dinamis/**"
+      - "docker-compose.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login ke Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push image dinamis
+        uses: docker/build-push-action@v5
+        with:
+          context: ./web-dinamis
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/uas_dinamis:latest
+
+      - name: Copy docker-compose ke EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ${{ secrets.AWS_USERNAME }}
+          key: ${{ secrets.AWS_PRIVATE_KEY }}
+          source: "docker-compose.yml,web-dinamis/db/init.sql"
+          target: "/home/ubuntu/docker-aws/"
+
+      - name: Deploy ke AWS EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ${{ secrets.AWS_USERNAME }}
+          key: ${{ secrets.AWS_PRIVATE_KEY }}
+          script: |
+            sudo chown -R ubuntu:ubuntu /home/ubuntu/docker-aws/web-dinamis/
+            chmod 644 /home/ubuntu/docker-aws/web-dinamis/db/init.sql
+            cd /home/ubuntu/docker-aws
+            docker compose pull container-dinamis
+            docker compose stop container-dinamis db-webdinamis
+            docker compose rm -f container-dinamis db-webdinamis
+            docker volume rm docker-aws_db_data || true
+            docker compose up -d db-webdinamis container-dinamis
+            echo "[dinamis] deployed at $(date)"

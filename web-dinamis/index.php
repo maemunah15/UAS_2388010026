@@ -31,7 +31,7 @@ $result = $conn->query("SELECT * FROM mahasiswa ORDER BY id DESC");
 <body>
     <h2>Daftar Mahasiswa (Web Dinamis)</h2>
     <a href="tambah.php" class="btn">Tambah Mahasiswa</a>
-    
+
     <table>
         <tr>
             <th>NIM</th>

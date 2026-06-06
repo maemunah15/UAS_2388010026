@@ -5,15 +5,23 @@ $pass = getenv('DATABASE_PASSWORD') ?: '';
 $db   = getenv('DATABASE_NAME') ?: 'uas_db';
 
 $conn = new mysqli($host, $user, $pass, $db);
+
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nim = $_POST['nim'];
-    $nama = $_POST['nama'];
+    $nim     = $_POST['nim'];
+    $nama    = $_POST['nama'];
     $jurusan = $_POST['jurusan'];
+
     $stmt = $conn->prepare("INSERT INTO mahasiswa (nim, nama, jurusan) VALUES (?, ?, ?)");
     $stmt->bind_param("sss", $nim, $nama, $jurusan);
     if ($stmt->execute()) {
         header("Location: index.php");
         exit();
+    } else {
+        $error = "Gagal menyimpan data: " . $stmt->error;
     }
 }
 ?>
@@ -28,10 +36,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         label { display: block; margin-bottom: 5px; }
         input { width: 300px; padding: 8px; }
         button { padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .error { color: red; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <h2>Tambah Data Mahasiswa</h2>
+    <?php if (!empty($error)): ?>
+        <p class="error"><?= htmlspecialchars($error) ?></p>
+    <?php endif; ?>
     <form method="POST">
         <div class="form-group">
             <label>NIM</label>
