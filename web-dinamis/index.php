@@ -41,7 +41,7 @@ $success = $_GET['success'] ?? '';
   <main class="main">
     <div class="page-header">
       <div class="page-title">
-        <h1>Dashboard</h1>
+        <h1>Informatika</h1>
         <p>Kelola data mahasiswa terdaftar</p>
       </div>
       <a href="tambah.php" class="btn btn-primary">
